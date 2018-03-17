@@ -1,0 +1,207 @@
+<html>
+<head>
+  <style>
+    BODY {font-family: Arial}
+    TABLE { border-collapse: collapse }
+    TD.center { text-align: center }
+    table, th, td { border: 1px solid black }
+    th, td { text-align: left; padding: 8px; }
+    th { background-color: #4CAF50; color: white; }
+    tr:nth-child(even){ background-color: #f0f0f0 }
+  </style>
+</head>
+<body>
+<h1>Introduction</h1>
+<p>Coupons in North America are typically printed with a barcode.
+This barcode contains information about the value of the coupon, rules for how the can be redeemed and other information.
+The barcode can be scanned with a barcode scanner which results in a numeric string.
+</p>
+<p>In order to understand what is encoded in the barcode string, you must decode the string.
+This can be accomplished by using one of the coupon barcode decoders available on the web, but for a automated approach you need a program
+which can decode the string and provide the needed information.
+The <b>coupon-barcde</b> project is a Javascript project which performs this decoding task.</p>
+<p>This information was learned by trial and error from the <a href="https://www.databar-barcode.info/coupon-decoder/">GS1 Databar info web page</a>.
+
+<h1>Coupon Barcode String Format</h1>
+<p>The North American coupon barcode string format standard is defined by the GS1 Databar effort.
+The GS1 Databar format was formally adopted by the global supply chain in January 2011.</p>
+
+<p>The overall format of the barcode string breaks down into two sections, a required fields section followed by a series of zero to seven optional field sections.
+The length of the required fields section is between 25 and 39 characters.</p>
+
+<p>The barcode begins with a 4 character <i>Application Identifier</i>, which for North American coupons is <b>8110</b>.
+This is followed by other fields which are detailed in the table below.</p>
+
+<h1>Field Formats</h1>
+<p>The defined fields in the barcode string are of two primary types, fixed and variable length.
+The fixed fields are always a fixed length and can be interpreted by simply reading the field length number of characaters from the string.
+The variable length fields vary not only in their length but also in how their length value is interpreted and are discussed in the following topic.</p>
+
+<h2>Variable-length field format</h2>
+<p>Whenever a field is defined as <b>Variable</b> length, the format of the field is a length-prefixed string.
+The first character of the string is a character representation of an integer
+which determines the length of the remainder of the field in characters.</p>
+
+<p>There are two types of variable-length fields used, which this document will refer to as <i>Variable+0</i> and <i>Variable+6</i>:
+  <dl>
+    <dt><b>Variable+0</b></dt>
+      <dd>the length character is an integer representing the length of the remainder of the field.
+        Experimentation has shown that the length value is always [1-5].</dd>
+    <dt><b>Variable+6</b></dt>
+      <dd>the length character is an integer which should be added to six to determine
+        the length of the remainder of the field. The set of valid values for the length varies by usage;
+        in most cases the values are [0-6] (resulting in a field length of 6 to 12 characters),
+        but some fields accept [0-7], [0-9] and even [0-69] {0, 1, 2, 3, 4, 5, 6, 9}
+        where [0-6] has the typical meaning but '9' has a special meaning.</dd>
+  </dl>
+
+<p>For example, if a <b>Variable+6</b> field begins with <b>153017533180515</b>, the variable portion of the field is seven characters long 
+This string should be interpreted as:</p>
+<pre>
+1 - length of field, which should be added to 6, giving a field length of 7
+5301753 - value of the field (the next 7 characters)
+3180515 - additional fields to be parsed
+</pre>
+
+<p>Alternately, if the same string was defined as beginning with a <b>Variable+0</b> field, the following would be the result of parsing:</p>
+<pre>
+1 - length of field (plus 0)
+5 - value of the field
+3017533180515 - additional fields to be parsed
+</pre>
+
+<h1>Barcode String Details</h1>
+<h2>Required fields</h2>
+<p>The following fields are required for a valid 8110 Application Identifier (North America Coupon) barcode.
+Field lengths are given in characters and include any length prefix.</p>
+
+<table>
+  <tr><th>Description</th><th>Format</th><th>Length</th><th>Notes</th></tr>
+  
+  <tr><td>Application Identifier</td><td class="center">Fixed</td><td class="center">4</td><td>'8110'</td></tr>
+  <tr><td>GS1 Company Prefix</td><td class="center">Variable+6<br>[0-6]</td><td class="center">7-13</td><td>The first character is an integer specifying the remaining length of the field.</td></tr>
+  <tr><td>Offer Code</td><td class="center">Fixed</td><td class="center">6</td><td></td></tr>
+  <tr><td>Save Value</td><td class="center">Variable+0<br>[1-5]</td><td class="center">2-6</td><td>The first character is the length of the remainder of the field.</td></tr>
+  <tr><td>Primary Purchase Requirement</td><td class="center">Variable+0<br>[1-5]</td><td class="center">2-6</td><td>The first character is the length of the remainder of the field. This is a value that is used with the next field to determine purchase requirements.</td></tr>
+  <tr><td>Primary Purchase Requirement Code</td><td class="center">Fixed</td><td class="center">1</td><td>This is a coded value that specifies requirements for the purchase. Valid values are:<br>
+    <ul>
+      <li>0 - Number of units</li>
+      <li>1 - Value of qualifying items</li>
+      <li>2 - Value of total transaction</li>
+      <li>3 - Number of pounds</li>
+      <li>4 - Number of kilograms</li>
+    </ul></td></tr>
+  <tr><td>Primary Purchase Family Code</td><td class="center">Fixed</td><td class="center">3</td><td></td></tr>
+</table>
+
+<p>The minimum possible length of the required fields is 25 chars; the maximum is 39 chars.</p>
+
+<h2>Optional data fields</h2>
+<p>The following fields can be concatenated onto the barcode value. The optional data fields can appear in any order. Each optional data field is identified by its first character.</p>
+
+<h3>2nd Qualifying purchase (field type '1')</h3>
+<table>
+  <tr><th>Description</th><th>Format</th><th>Length</th><th>Notes</th></tr>
+  
+  <tr><td>Field type identifier</td><td class="center">Fixed</td><td class="center">1</td><td>'1'</td></tr>
+  <tr><td>Additional Purchase Rules Code</td><td class="center">Fixed</td><td class="center">1</td><td>Valid values and meanings are:<br>
+    <ul>
+      <li>0 - Primary or 2nd or 3rd item</li>
+      <li>1 - Primary and 2nd and 3rd items</li>
+      <li>2 - Primary and 2nd or 3rd items</li>
+      <li>3 - 2nd or 3rd Family/Company Prefix</li>
+    </ul></td></tr>
+  <tr><td>2nd purchase requirement</td><td class="center">Variable+0<br>[1-5]</td><td class="center">2-6</td><td></td></tr>
+  <tr><td>2nd purchase requirement code</td><td class="center">Fixed</td><td class="center">1</td><td>Valid values and meanings are:<br>
+    <ul>
+      <li>0 - Number of units</li>
+      <li>1 - Values of qualifying items</li>
+      <li>2 - Value of total transaction</li>
+      <li>3 - Number of pounds</li>
+      <li>4 - Number of kilograms</li>
+    </ul></td></tr>
+  <tr><td>2nd purchase family code</td><td class="center">Fixed</td><td class="center">3</td><td></td></tr>
+  <tr><td>2nd purchase company prefix</td><td class="center">Variable+6<br>[1-69]</td><td class="center">1,7-13</td><td>Valid length values are [0-6] and 9. If 9 is supplied, the variable-length portion of the field is interpreted as <i>n/a</i> and the length is zero.</td></tr>
+</table>
+
+<h3>3rd Qualifying purchase (field type '2')</h3>
+<table>
+  <tr><th>Description</th><th>Format</th><th>Length</th><th>Notes</th></tr>
+
+  <tr><td>Field type identifier</td><td class="center">Fixed</td><td class="center">1</td><td>'2'</td></tr>
+  <tr><td>3rd purchase requirement</td><td class="center">Variable+0</td><td class="center">2-6</td><td>Valid length values are [1-5].</td></tr>
+  <tr><td>3rd purchase requirement code</td><td class="center">Fixed</td><td class="center">1</td><td>Valid values and meanings are:<br>
+    <ul>
+      <li>0 - Primary or 2nd or 3rd item</li>
+      <li>1 - Primary and 2nd and 3rd items</li>
+      <li>2 - Primary and 2nd or 3rd items</li>
+      <li>3 - 2nd or 3rd Family/Company Prefix</li>
+    </ul></td></tr>
+  <tr><td>3rd purchase family code</td><td class="center">Fixed</td><td class="center">3</td><td></td></tr>
+  <tr><td>3rd purchase company prefix</td><td class="center">Variable+6<br>[1-69]</td><td class="center">1,7-13</td><td>Valid length values are [0-6]and 9. If 9 is supplied, the variable-length portion of the field is interpreted as <i>n/a</i> and the length is zero.</td></tr>
+</table>
+
+<h3>Expiry Date (field type '3')</h3>
+<table>
+  <tr><th>Description</th><th>Format</th><th>Length</th><th>Notes</th></tr>
+
+  <tr><td>Field type identifier</td><td class="center">Fixed</td><td class="center">1</td><td>'3'</td></tr>
+  <tr><td>Expiration Date (YYMMDD)</td><td class="center">Fixed</td><td class="center">6</td><td></td></tr>
+</table>
+
+<h3>Start Date (field type '4')</h3>
+<table>
+  <tr><th>Description</th><th>Format</th><th>Length</th><th>Notes</th></tr>
+
+  <tr><td>Field type identifier</td><td class="center">Fixed</td><td class="center">1</td><td>'4'</td></tr>
+  <tr><td>Start Date (YYMMDD)</td><td class="center">Fixed</td><td class="center">6</td><td></td></tr>
+</table>
+
+<h3>Serial Number (field type '5')</h3>
+<table>
+  <tr><th>Description</th><th>Format</th><th>Length</th><th>Notes</th></tr>
+
+  <tr><td>Field type identifier</td><td class="center">Fixed</td><td class="center">1</td><td>'5'</td></tr>
+  <tr><td>Serial Number</td><td class="center">Variable+6<br>[0-9]</td><td class="center">7-16</td><td></td></tr>
+</table>
+
+<h3>Retailer Company Prefix/GLN (field type '6')</h3>
+<table>
+  <tr><th>Description</th><th>Format</th><th>Length</th><th>Notes</th></tr>
+
+  <tr><td>Field type identifier</td><td class="center">Fixed</td><td class="center">1</td><td>'6'</td></tr>
+  <tr><td>Retailer Company Prefix/GLN</td><td class="center">Variable+6<br>[1-7]</td><td class="center">8-14</td><td></td></tr>
+</table>
+
+<h3>Miscellaneous Elements (field type '9')</h3>
+<table>
+  <tr><th>Description</th><th>Format</th><th>Length</th><th>Notes</th></tr>
+
+  <tr><td>Field type identifier</td><td class="center">Fixed</td><td class="center">1</td><td>'9'</td></tr>
+  <tr><td>Save Value Code</td><td class="center">Fixed</td><td class="center">1</td><td>This code further qualifies the coupon's usage. Valid values and meanings are:<br>
+    <ul>
+      <li>0 - Cents off purchase item</li>
+      <li>1 - Purchase item is free (up to Save Value)</li>
+      <li>2 - Number of purchase items free</li>
+     </ul></td></tr>
+  <tr><td>Applies to which item code</td><td class="center">Fixed</td><td class="center">1</td><td>This code determines to which item the savings is to be applied. Valid values and meanings are:<br>
+    <ul>
+      <li>0 - Primary qualifying item</li>
+      <li>1 - 2nd qualifying item</li>
+      <li>2 - 3rd qualifying item</li>
+     </ul></td></tr>
+  <tr><td>Store Coupon code</td><td class="center">Fixed</td><td class="center">1</td><td>This code determines to how many items the coupon savings applies. Valid values and meanings are:<br>
+    <ul>
+      <li>0 - Not a store coupon</li>
+      <li>1 - Applies to only 1 qualifying item</li>
+      <li>2-8 - Applies to the specified number of qualifying items</li>
+      <li>9 - Applies to all qualifying items</li>
+     </ul></td></tr>
+  <tr><td>Don't Multiply Flag</td><td class="center">Fixed</td><td class="center">1</td><td>This code determines whether the coupon's value can be multiplied or not. Valid values and meanings are:
+    <ul>
+      <li>0 - Offer can be multiplied</li>
+      <li>1 - Offer must not be multiplied</li>
+     </ul></td></tr>
+</table>
+  
+</body></html>
