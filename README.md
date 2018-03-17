@@ -5,3 +5,4 @@ When you scan a barcode from a coupon you get an up to 70 character numeric stri
 
 This project is a Javascript project which parses the barcode string and interprets it according to the GS1 Databar format (https://www.databar-barcode.info/).
 
+This project would be helpful if you need to process large numbers of coupons.
