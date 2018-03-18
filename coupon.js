@@ -3,6 +3,9 @@ This code is covered by MIT License
 
 Copyright (c) 2018 Michael Frederick
 */
+
+module.exports = coupon
+
 const miscElements = require('./miscElements.js')
 const requiredFields = require('./requiredFields.js')
 const utility = require('./utility.js')
