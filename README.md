@@ -17,4 +17,4 @@ const coupon = require('coupon-barcode/coupon.js')
 
 let c = new coupon(<the barcode string>)
 ```
-the coupon object "constructor" parses the string and builds the object structure.
+the **coupon** object "constructor" parses the string and builds the object structure.
