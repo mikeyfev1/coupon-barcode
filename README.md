@@ -8,7 +8,7 @@ This project is a Javascript project which parses the barcode string and interpr
 This project would be helpful if you need to process large numbers of coupons.
 
 ## How to use it
-Until I get this project to work with NPM, get the files and put them into your node_modules/coupon-barcode folder.
+Until I get this project to work with NPM, get the files and put them into a **node_modules/coupon-barcode** folder.
 
 Now in your calling code:
 
