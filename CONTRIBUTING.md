@@ -3,9 +3,7 @@ Introduction
 First of all, thank you for considering contribution to coupon-barcode.
 
 This is my first open source contribution and I am still learning the environment, so please bear with me while I
-figure everything out. To simplify things, I will not be accepting contributions until I understand and can utilize
-the environment.
+figure everything out. As you will see, I need help with: 1) getting these files built-up as a NPM installable package
+and advice about the fact that I do all of my parsing in an object constructor (is this bad?)
 
-My goal is to convert my working file set to an NPM-installable project.
-
-Feel free to mention anything you find interesting to me at mailto://mike@theFrederickHome.name
+Feel free to mention anything that would help to me at mailto://mike@theFrederickHome.name
